@@ -1,0 +1,197 @@
+Design notes for Acelgoyobis
+
+As you should already know, the tables are made of two major components: walls
+and interactive elements. It is generally a good idea to do things in the
+following order:
+
+1a. Create the walls without decoration (in dark red, i. e. red and black).
+Don't make any wall thinner than three pixels, otherwise collision detection
+might not work as expected.
+1b. Add the flippers and the holes where necessary. Also create a dummy gizmo so
+the table can be tested in this phase.
+1c. Test the walls, the lanes and all the areas reserved for the ball. If some
+of the lanes are impossible to reach using the flippers, adjust them in this
+phase and retest until everything works. Also make sure that there are no traps
+where the ball can get stuck.
+2a. When you are satisfied with the static infrastructure, you can start adding
+the interactive elements.
+2b. The bonus multiplier should not be easy to increase, you should generally
+make it the hardest quest.
+2c. Test if your event scripts are working as expected. Lots of typical
+applications will be discussed in the Objects section below.
+3. When the table is functionally ready, hide the red and blue layers in the
+editor and start decorating. Do not decorate the outmost pixels of wall areas,
+they should be all black, otherwise collision detection might be damaged. Don't
+overdecorate the ball area, it can easily become too distracting and annoying.
+
+
+Walls
+
+Never decorate the red layer, keep it as simple as possible. It should be an
+image of the physical walls, i. e. the areas that the ball should never reach
+must be filled on it completely. If you draw anything on the walls on the red
+layer collisions might produce strange results, and the final table file will be
+much bigger.
+
+There is only one occasion that the ball can collide: when it reaches the
+boundary of a dark red area when coming from an area of different (non-reddish)
+colour. When the ball makes it into the dark red part through a blue hole or by
+any other means it won't collide with the boundary when leaving it, so it won't
+get stuck in the wall.
+
+If you want to create a lane with black background, you can do it by simply not
+filling the reachable parts red.
+
+You should use base.xagt as a starting point. You can't displace the shooting
+mechanism, and the correct position is marked in this file. Also, you should not
+let the ball leave the table area, you can get some unexpected behaviour.
+
+
+Objects
+
+It is naturally recommended to look at the sources of the original tables to see
+how certain goals can be achieved with this object system. In this section I'll
+explain some basic tasks.
+
+The object names imply their type: Gx is gizmo, Tx is timer, Cx is counter.
+
+
+Scoring
+
+When you hit something that gives you score or increases the bonus multiplier,
+you should generally hide it at the same time and make it reappear later. If you
+leave a gizmo on while the ball passes through it, its events will be executed
+in every frame while the ball is touching it. This is very bad, since a single
+hit could result in the multiplier being increased by ten. The solution can be
+similar to this one:
+
+|       G        |     T      |
+| Hide G         | Activate G |
+| SetTimer T, 30 |            |
+| rewards...     |            |
+
+A time of 30 units is usually enough for the ball to pass the gizmo.
+
+You don't need to hide a gizmo if its event script does not contain Score, Bonus
+and Decrease events, since the other events are idempotent (it does not matter
+whether you execute them once or more).
+
+It is usually recommended to make the bonus multiplier hard to increase, as it
+is the most valuable reward.
+
+
+Detecting a lane
+
+You might want to determine if a ball has passed through the whole length of a
+lane.
+
+1. It should be detected in one direction only. In that case simply put a gizmo
+to the opening end. When this gizmo is hit, it should disappear and make another
+one appear at the other end, which validates the lane when hit. However, this
+would still allow you to clear the first one but not reach the other end and
+collect the second one later. To prevent this, you should put a hit area to the
+outside of the second one that makes it disappear:
+
+     --------------------------------
+-->   G1                       G2 G3
+     --------------------------------
+
+G1 and G3 are active by default. When G3 is hit, it deactivates G2. When G1 is
+hit, it activates G2. When G2 is hit, the lane was passed in its entirety. None
+of the gizmoes need to have sprites. You can make them visible to have the
+player better know what is going on, but G3 should be definitely just a hit
+area. The event scripts can be the following:
+
+|     G1      |     G2      |     G3      |
+| Activate G2 | Hide G2     | Hide G2     |
+|             | rewards...  |             |
+
+In this case G1 and G3 shouldn't have any additional events, since they are
+never hidden.
+
+2. It should be valid in both directions. The solution is the extension of the
+previous one in the following way:
+
+  -----------------------------------
+   G1 G3                       G4 G2
+  -----------------------------------
+
+|       G1        |       G2        |     G3     |     G4     |     C      |
+| SetCounter C, 2 | SetCounter C, 2 | Hide G3    | Hide G4    | rewards... |
+| Activate G3     | Activate G3     | Decrease C | Decrease C |            |
+| Activate G4     | Activate G4     |            |            |            |
+
+The initial value of C doesn't matter, although it is advisable to set it to 2,
+so it reminds you. Basically G1 and G2 are used to reset and activate the
+detection mechanism, while the counter C ensures that both G3 and G4 are hit
+before any reward is given.
+
+
+Series
+
+The previous lane detection method also showed how you can make a group of
+object that must be hit all to get a reward. The basic idea is using a counter
+to keep track of the state of the group:
+
+|     G1     |     |     Gn     |       C        |        T        |
+| Hide G1    | ... | Hide Gn    | SetTimer T, 30 | Activate G1     |
+| Decrease C |     | Decrease C | rewards        | ...             |
+|            |     |            |                | Activate Gn     |
+|            |     |            |                | SetCounter C, n |
+
+The initial value of C should be n, i. e. the number of objects in the group.
+The timer is needed so the objects do not reappear instantly upon hitting the
+last one, otherwise the last one would be immediately hit, since the ball is
+still there. The timer reinitialises the whole group.
+
+Note that the reward can be anything, e. g. unhiding another group to make
+complex quests. You can see examples for that in the original tables.
+
+
+Blinking
+
+Since blinking is not 'natively' supported by the engine, you have to use two
+timers to achieve it. The two timers set each other when going off:
+
+|       T1        |       T2        |      G      |
+| SetTimer T2, 30 | SetTimer T1, 30 | anything... |
+| Activate G      | Hide G          |             |
+
+To activate the blinking you simply need to set one of the timers to a nonzero
+value, and the engine will take care of the rest.
+
+To deactivate it you must take care of all the components yourself:
+
+SetTimer T1, 0
+SetTimer T2, 0
+Hide G
+
+(reminder: setting a timer to zero deactivates it without executing its events)
+
+
+Gates
+
+You can also make parts of the surface possible to open and close. Simply draw 
+all the walls on the red layer, including the gate part. The next step is 
+putting a gizmo over this area with the shape you want to open or close, i. e.
+the image of the gate. That's all. When you hide this gizmo it will simply 
+delete the part of wall covered by its black pixels, so the ball can pass 
+through. When you activate it, the wall is restored. Basically the difference
+from other gizmoes is that the corresponding red pixels are also set.
+
+
+Miscellaneous
+
+There are other kinds of notable achievements in the original tables:
+
+- the flower race in Gaia, where you must hit the flowers fast in a sequence
+- the cup quest in Speed, where independent quests contribute to the same goal
+- long timers in Gaia and Speed, implemented in two different ways
+- lanes with more than two entrances
+
+Study these tables and build your own, the more you make the more skill you will
+acquire in the process. You can do many kinds of actions with these three kinds
+of objects (the bounces and the flippers aren't really interactive). For the
+time being you won't really need SetFlags and ResetFlags, the original tables
+don't use them either.
+

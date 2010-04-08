@@ -1,0 +1,25 @@
+body { margin: 2em 10%; color: #003; font-size: 16px; font-family: Arial, Helvetica, sans-serif }
+
+h1 { padding-bottom: 0.3em; border-bottom: 8px solid #eec; font-size: 32px }
+h2 { clear: both; font-size: 24px }
+
+table { margin: auto; border: 2px solid #dde }
+th { padding: 0.3em; background: #ccd; font-size: 18px }
+td { padding: 0.3em; background: #eeeef8 }
+
+ul { list-style: square }
+
+ul.main { margin: auto; width: 580px; padding: 80px; list-style: none; background: url(laszti.png) no-repeat left center }
+.main li { margin-left: 240px; padding: 10px }
+.main li:first-letter { font-size: 30px }
+.main a { font-weight: bold; text-decoration: none; color: #88a; font-size: 24px }
+.main a:hover { color: #ea6; }
+
+div.fig { text-align: center }
+
+h1.intro { border: none; text-align: center; color: #ea6; letter-spacing: 0.2em; font-size: 60px; }
+p.subtit { margin: -2em 0 0 0; text-align: center; font-weight: bold; color: #aa6 }
+
+div.timg { float: right; padding: 0 0 0 2em }
+div.timg img { border: 1px solid #000 }
+

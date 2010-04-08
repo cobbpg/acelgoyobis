@@ -1,0 +1,92 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Acelgoyobis - Pinball for the TI-82/83/83+</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" type="text/css" href="ag.css" />
+</head>
+<body>
+<h1>Acelgoyobis Table Editor</h1>
+<p>AGTEdit allows you to build your own tables for Acelgoyobis. You need the Java Runtime Engine to run it. Start AGTEdit.jar to get going. This is a condensed manual of the program. When you are familiar with the editor you should also read the design guide, it will clear up a lot of things.</p>
+<h2>Overview</h2>
+<p>When the program is started you begin with an empty table. You can either load or save tables (xagt files) or export them to calculator binaries (all 82p, 83p and 8xp files are created). When you export a file, simply use the same filename as the saved table. The program will automatically remove the xagt extension and replace it with the appropriate ones.</p>
+<p>The editing screen is divided into three principal parts:</p>
+<ul>
+<li>brush bar</li>
+<li>paint area</li>
+<li>object bar</li>
+</ul>
+<p>The brush bar contains the tools needed to paint the walls, while the object bar is used to manage the interactive elements of the table. The two components are united in the paint area.</p>
+<h3>Brush bar</h3>
+<p>There are three button groups on this toolbar. The first group determines which layers to paint on. The static part of the table is modelled using three layers: decoration (black), walls (red) and holes (blue). When e. g. the black and blue buttons are pressed, the decoration and the hole layer will be affected by the brush and the wall layer will be left intact. The significance of the layers is described below.</p>
+<p>The second group is used to show and hide each layer individually. When a layer is hidden it is also protected from modification. E. g. if the black and the red layers are selected in the first group but the red layer is set to hidden in the second one the brush will only draw on the black layer. All three layers are shown by default.</p>
+<p>The third group is for selecting brush shape. You can choose from four shapes from Br1 to Br4. The Obj button activates the object selection mechanism. In this state you can use the mouse to manipulate objects. More on that in the next section.</p>
+<h3>Paint area</h3>
+<p>There are two modes of manipulation: painting and selection. Painting mode is active when one of the four brushes is chosen. You can paint by pressing the left mouse button and erase the components chosen with the right button (e. g. when the area is dark red and the red layer is chosen for painting erasing results in black colour). It is possible to drag the mouse in the process. When you are in selection mode (Obj is pressed on the left) you can select individual objects with the left mouse button and also drag them. If you want to select multiple objects just hold Ctrl while clicking with the mouse button. To move all selected objects simultaneously you don&rsquo;t need to do anything special just drag one of them. Note that they will collide with the edges of the paint area.</p>
+<p>You can also magnify the view using the Zoom menu. This is useful when working on small details. Besides, you can copy the decoration layer into the wall layer (check the Table menu). This is useful when you import an image instead of drawing it in the editor, because importing fills the decoration layer and clears the others. Note that an image must be 96x160 pixels big (gif, png, jpg or bmp), otherwise it cannot be imported. The program will convert it to black and white, but you are advised to do that yourself before this operation for the best result.</p>
+<h3>Object bar</h3>
+<p>The object bar is divided into two parts: object list (top) and object editor (bottom). When there are no or multiple objects selected, you can edit the name of the table in the bottom part. When a single object is selected, you can edit its properties including its name. When changing the name of an object you have to press Enter in the text field, otherwise the change will be discarded. There is no need to press Enter in any other text field in the program. Information on various types of objects is below.</p>
+<p>You can select multiple objects in the usual way by holding Ctrl or Shift (Ctrl for individual objects and Shift for intervals). All selected objects can be deleted at once. When a new object is created, it is inserted before the first selected one in the list. If you want to move an object in the list, you can use the up/down buttons next to Delete. They do not do anything when more than one object is selected.</p>
+<h2>Walls</h2>
+<p>As mentioned above, there are three layers: decoration (black), walls (red) and holes (blue). Decoration is what you&rsquo;ll actually see in the game. The wall layer should be a simplified copy of the decoration layer: the walls should be completely filled, and the area reserved for the ball completely white or black without any red. The pixels on the boundaries of the red patches must be blackened on the decoration layer as well (so they should be dark red), otherwise the ball will go through them in the game. Use blue ink to open a hole on a wall. If any pixel has the blue (hole) component on, it will be penetrable regardless of the contents of the other two layers. This is only useful when you want a wall penetrable in one direction. If you want a &lsquo;wall&rsquo; that&rsquo;s completely penetrable, you should simply draw it with black without red.</p>
+<div class="fig"><img src="walls.png" alt="Wall layers" /></div>
+<p>The a) piece is simply a collidable blob with some decoration (white pixels) on it. The b) case is a wall that can be entered only from the left, while the c) wall can be entered from both directions. This is how they&rsquo;ll look like in the game:</p>
+<div class="fig"><img src="wallsg.png" alt="Final look" /></div>
+<p>You can verify the final appearance yourself by hiding the red and blue layers in the editor.</p>
+<h2>Objects</h2>
+<p>There are five types of objects you can put on the table:</p>
+<table>
+<tr><th>Type</th><th>Description</th></tr>
+<tr><td>Gizmo</td><td>&rsquo;physical&rsquo; object: either a visible target or a detection area</td></tr>
+<tr><td>Timer</td><td>automatic countdown that dispatches events when it reaches zero</td></tr>
+<tr><td>Counter</td><td>similar to the timer, but it decreases its value when it&rsquo;s explicitely told so</td></tr>
+<tr><td>Bounce</td><td>a rectangular area that makes the walls inside sort of elastic</td></tr>
+<tr><td>Flipper</td><td>the paddles you can control the ball with</td></tr>
+</table>
+<p>Additionally you can use &lsquo;Comment&rsquo; objects that don&rsquo;t affect the table at all but might be put into good use by documenting your work.</p>
+<p>The details on each one are discussed in the following sections.</p>
+<h3>Gizmo</h3>
+<p>The primary use of these objects is creating hittable targets. When the ball touches a gizmo that&rsquo;s active, the associated event script is executed. The event system is described later.</p>
+<p>Each gizmo has the following properties:</p>
+<ol>
+<li>dimensions: X, Y - coordinates of the top left corner; W, H - the distance between the top left and the bottom right corner (width and height). This means that a single-pixel object would have zero for both W and H.</li>
+<li>dynamic properties: visible - the object is drawn with black pixels (when it&rsquo;s &lsquo;invisible&rsquo; it&rsquo;s actually drawn with white pixels!); active - the object reacts to being hit by the ball by executing its events (when inactive this doesn&rsquo;t happen even if it&rsquo;s visible). These properties are independent, so an invisible object can also be hit if it&rsquo;s active. In the editor you can set the initial state for each object when each ball is launched.</li>
+<li>sprite related: sprite present - uncheck it if you don&rsquo;t need a sprite, the resulting calculator file will be smaller. Note that the editor&rsquo;s file format keeps your sprite data regardless of whether this box is checked.</li>
+<li>events</li>
+</ol>
+<p>Some of the properties are stored in an 8-bit flag that can be manipulated during game. The flag's bits are the following:</p>
+<ul>
+<li>bit 0: sprite data is included (this can't be changed)</li>
+<li>bit 1: sprite is visible</li>
+<li>bit 2: gizmo is active</li>
+<li>bits 3-7: unused</li>
+</ul>
+<p>Sprite editing happens in the little window. Press the left button to draw black pixels, and the right button for white pixels. The white pixels will let the background show through, the black pixels will be black or white depending on the visibility of the gizmo while in the game. You can use the &lsquo;Fit size&rsquo; button to set the W and H values in accordance with the sprite data.</p>
+<p>Important: you must have at least one gizmo, otherwise the table will cause a crash. While you are testing the empty table in the early phase, you should simply create an inactive, invisible dummy object. More on this in the design guidelines.</p>
+<h3>Timer</h3>
+<p>The timer has only one property: a counter value. This value can be between 0 and 255. When it&rsquo;s 0, the timer is inactive. When it&rsquo;s positive, the game engine decreases it by one in each internal frame; a value of 255 gives you a couple of seconds. If the decrease results in zero, the events are executed and the timer goes inactive. To reactivate it simply give it a positive value. The one you specify is what it starts with when a ball is launched. If you want to deactivate a running timer without having its events run, simply set it to zero in an event.</p>
+<h3>Counter</h3>
+<p>The counter is almost identical to the timer in its behaviour. The only difference is the way it decreases: instead of the game time it is induced by the appropriate event.</p>
+<h3>Bounce</h3>
+<p>This is a rectangular area, and the dimensions have the same meaning as in the gizmo. When the ball is inside in such an area the collision with the wall gives it an extra thrust away from the wall. There are no events associated with it.</p>
+<h3>Flipper</h3>
+<p>These are the paddles that allow you to play the game in the first place. Simply put them in the appropriate place and set the direction by pressing the button next to the coordinates.</p>
+<p>Important: when you select such an object you can see a 16x8 pixel area go grey. Everything in this area will be deleted to white while in the game, so you shouldn&rsquo;t draw on it, because the background won&rsquo;t make it to the screen anyway.</p>
+<h2>Events</h2>
+<p>Event scripts are invoked when a) an active (but not necessarily visible) gizmo is hit, b) a counter reaches zero after decreasing, c) a timer reaches zero. An event script consists of consecutive events that are executed instantaneously in the time frame of the game. In reality, events are executed in the order you wrote them. Let&rsquo;s see the elementary events:</p>
+<table>
+<tr><th style="width: 7em">Event</th><th>Definition</th></tr>
+<tr><td>Score S1, S2</td><td>Add S1 to the score and S2 to the bonus. Both S1 and S2 can be between 0 and 65535.</td></tr>
+<tr><td>Bonus</td><td>Increase bonus multiplier.</td></tr>
+<tr><td>SetFlags G, F</td><td>Perform binary OR of the flags of gizmo G and the value F.</td></tr>
+<tr><td>ResetFlags G, F</td><td>Perform binary AND of the flags of gizmo G and the value F.</td></tr>
+<tr><td>Activate G</td><td>Set gizmo G visible and active. (Same as SetFlags G, 6.)</td></tr>
+<tr><td>Hide G</td><td>Set gizmo G invisible and inactive. (Same as ResetFlags G, 249.)</td></tr>
+<tr><td>SetCounter C, V</td><td>Set the value of counter C to V.</td></tr>
+<tr><td>Decrease C</td><td>Decrease the value of counter C by one. If it reaches zero at this point, execute its events before going on with the current script.</td></tr>
+<tr><td>SetTimer T, V</td><td>Set the value of timer T to V. If V is zero, the timer is disabled without executing its events.</td></tr>
+</table>
+<p>The F and V parametres can take values between 0 and 255 only. In the editor they are always Par1. Par2 is only used by the Score event. The G, C and T objects can be picked from a list after the type of event is selected.</p>
+<p>The score system works in a way similar to that of computer pinball games. There are three values that take different roles: score, bonus and multiplier. The score is what you see and goes into the high score table. The bonus is an additional value that&rsquo;s multiplied by the multiplier and added to the score when a ball is lost. When a new ball is started, the bonus is reset to zero and the multiplier to one.</p>
+</body>
+</html>
